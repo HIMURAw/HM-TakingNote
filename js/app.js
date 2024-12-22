@@ -3,15 +3,13 @@ const noteInput = document.getElementById('noteInput');
 const addNoteBtn = document.getElementById('addNoteBtn');
 const notesContainer = document.getElementById('notesContainer');
 
-// LocalStorage'dan notları yükle
 function loadNotes() {
   const notes = JSON.parse(localStorage.getItem('notes')) || [];
   notesContainer.innerHTML = ''; // Önce temizle
   notes.forEach((note, index) => {
-    createNoteElement(note, index);
+    createNoteElement(note, index); // Her bir notu ve butonlarını ekle
   });
 }
-
 // Yeni not ekle
 function addNote() {
   const noteText = noteInput.value.trim();
@@ -20,26 +18,38 @@ function addNote() {
     return;
   }
 
+  const date = new Date();
+  const formatDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`;
   const notes = JSON.parse(localStorage.getItem('notes')) || [];
-  notes.push(noteText);
+  notes.push({text: noteText, date: formatDate});
   localStorage.setItem('notes', JSON.stringify(notes));
 
   createNoteElement(noteText, notes.length - 1);
   noteInput.value = ''; // Girişi temizle
 }
 
-// Notu HTML olarak ekle
-function createNoteElement(noteText, index) {
+function createNoteElement(note, index) {
   const noteDiv = document.createElement('div');
   noteDiv.className = 'note';
   noteDiv.innerHTML = `
-    ${noteText}
-    <button onclick="deleteNote(${index})">X</button>
+    ${note.text} <br>
+    <small>${note.date}</small>
+    <button onclick="deleteNote(${index})" class="note-btn delete-btn">X</button>
+    <button onclick="editNote(${index})" style="display: flex; margin-right: 50px; background-color: green;" class="note-btn edit-btn">Edit</button>
   `;
   notesContainer.appendChild(noteDiv);
 }
 
-// Notu sil
+function editNote(index) {
+  const notes = JSON.parse(localStorage.getItem('notes')) || [];
+  const newNoteText = prompt('Düzenlemek istediğiniz notu girin:', notes[index].text);
+  if (newNoteText !== null && newNoteText.trim() !== '') {
+    notes[index].text = newNoteText; // Notu güncelle
+    localStorage.setItem('notes', JSON.stringify(notes));
+    loadNotes(); // Güncellenmiş notları yükle
+  }
+}
+
 function deleteNote(index) {
   const notes = JSON.parse(localStorage.getItem('notes')) || [];
   notes.splice(index, 1); // Notu listeden çıkar
@@ -52,3 +62,4 @@ addNoteBtn.addEventListener('click', addNote);
 
 // Sayfa yüklendiğinde notları yükle
 window.onload = loadNotes;
+
